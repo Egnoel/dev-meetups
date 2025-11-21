@@ -20,6 +20,14 @@ const EventDetailsPage = async ({
 
   const bookings = 10;
 
+  const parseJSONSafely = (jsonString: string) => {
+    try {
+      return JSON.parse(jsonString);
+    } catch {
+      return [];
+    }
+  };
+
   return (
     <section id="event">
       <div className="header">
@@ -68,12 +76,12 @@ const EventDetailsPage = async ({
               label={event.audience}
             />
           </section>
-          <EventAgenda AgendaItems={JSON.parse(event.agenda)} />
+          <EventAgenda AgendaItems={parseJSONSafely(event.agenda)} />
           <section className="flex-col-gap-2">
             <h2>About the Organizer</h2>
             <p>{event.organizer}</p>
           </section>
-          <EventTags tags={JSON.parse(event.tags)} />
+          <EventTags tags={parseJSONSafely(event.tags)} />
         </div>
         {/*Right Side - Booking form */}
         <aside className="booking">
