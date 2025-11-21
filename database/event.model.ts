@@ -112,8 +112,8 @@ EventSchema.index({ slug: 1 }, { unique: true });
 
 // Pre-save hook for slug generation and date/time normalization
 EventSchema.pre('save', function (next) {
-  // Generate slug only if title is modified or document is new
-  if (this.isModified('title') || this.isNew) {
+  // Generate slug only if title changes and slug is not explicitly provided
+  if (this.isModified('title') && !this.slug) {
     this.slug = this.title
       .toLowerCase()
       .trim()
@@ -137,13 +137,16 @@ EventSchema.pre('save', function (next) {
     }
   }
 
-  // Normalize time format (HH:MM AM/PM or HH:MM) if modified
+  // Validate time format: 12-hour with AM/PM OR 24-hour without AM/PM
   if (this.isModified('time')) {
-    const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](\s?(AM|PM|am|pm))?$/;
-    if (!timePattern.test(this.time.trim())) {
-      return next(new Error('Invalid time format. Use HH:MM or HH:MM AM/PM'));
+    const trimmedTime = this.time.trim();
+    // 12-hour format: (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)
+    // OR 24-hour format: ([01]?[0-9]|2[0-3]):[0-5][0-9]
+    const timePattern = /^((0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)|(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9])$/;
+    if (!timePattern.test(trimmedTime)) {
+      return next(new Error('Invalid time format. Use 12-hour (HH:MM AM/PM) or 24-hour (HH:MM)'));
     }
-    this.time = this.time.trim();
+    this.time = trimmedTime;
   }
 
   next();
