@@ -3,9 +3,9 @@ import connectDB from '@/lib/mongodb';
 import { Event } from '@/database';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 /**
