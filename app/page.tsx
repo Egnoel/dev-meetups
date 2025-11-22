@@ -1,12 +1,15 @@
 import EventCard from '@/components/EventCard';
 import ExploreBtn from '@/components/ExploreBtn';
 import { IEvent } from '@/database';
+import { cacheLife } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const page = async () => {
+  "use cache";
+  cacheLife("hours");
   const response = await fetch(`${BASE_URL}/api/events`, { cache: 'no-store' });
   const { events } = await response.json();
   return (
