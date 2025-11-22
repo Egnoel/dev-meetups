@@ -1,7 +1,10 @@
 import BookEvent from '@/components/BookEvent';
 import EventAgenda from '@/components/EventAgenda';
+import EventCard from '@/components/EventCard';
 import EventDetailItem from '@/components/EventDetailItem';
 import EventTags from '@/components/EventTags';
+import { IEvent } from '@/database';
+import { getSimilarEventsBySlug } from '@/lib/actions/event.actions';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
@@ -20,13 +23,7 @@ const EventDetailsPage = async ({
 
   const bookings = 10;
 
-  const parseJSONSafely = (jsonString: string) => {
-    try {
-      return JSON.parse(jsonString);
-    } catch {
-      return [];
-    }
-  };
+  const similarEvents: IEvent[] = await getSimilarEventsBySlug(event.slug);
 
   return (
     <section id="event">
@@ -76,12 +73,12 @@ const EventDetailsPage = async ({
               label={event.audience}
             />
           </section>
-          <EventAgenda AgendaItems={parseJSONSafely(event.agenda)} />
+          <EventAgenda AgendaItems={event.agenda} />
           <section className="flex-col-gap-2">
             <h2>About the Organizer</h2>
             <p>{event.organizer}</p>
           </section>
-          <EventTags tags={parseJSONSafely(event.tags)} />
+          <EventTags tags={event.tags} />
         </div>
         {/*Right Side - Booking form */}
         <aside className="booking">
@@ -97,6 +94,18 @@ const EventDetailsPage = async ({
             <BookEvent />
           </div>
         </aside>
+      </div>
+      <div className="flex w-full flex-col gap-4 pt-20">
+        <h2>Similar Events</h2>
+        <div className="events">
+          {similarEvents && similarEvents.length > 0 ? (
+            similarEvents.map((simEvent: IEvent) => (
+              <EventCard key={simEvent.slug} {...simEvent} />
+            ))
+          ) : (
+            <p>No similar events found.</p>
+          )}
+        </div>
       </div>
     </section>
   );
