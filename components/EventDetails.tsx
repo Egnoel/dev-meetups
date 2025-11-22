@@ -10,14 +10,33 @@ import EventCard from './EventCard';
 import { cacheLife } from 'next/cache';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-const EventDetails = async({ params }: { params: Promise<string >}) => {
-    'use cache';
+const EventDetails = async ({ params }: { params: Promise<string> }) => {
+  'use cache';
   cacheLife('hours');
-  const  slug  = await params;
-  const request = await fetch(`${BASE_URL}/api/events/${slug}`);
-  const { event } = await request.json();
+  const slug = await params;
+  let event;
+  try {
+    const request = await fetch(`${BASE_URL}/api/events/${slug}`, {
+      next: { revalidate: 60 },
+    });
 
-  if (!event) return notFound();
+    if (!request.ok) {
+      if (request.status === 404) {
+        return notFound();
+      }
+      throw new Error(`Failed to fetch event: ${request.statusText}`);
+    }
+
+    const response = await request.json();
+    event = response.event;
+
+    if (!event) {
+      return notFound();
+    }
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    return notFound();
+  }
 
   const bookings = 10;
 
@@ -107,6 +126,6 @@ const EventDetails = async({ params }: { params: Promise<string >}) => {
       </div>
     </section>
   );
-}
+};
 
-export default EventDetails
+export default EventDetails;
